@@ -15,6 +15,9 @@ class App extends Component {
     }
 
     this.pickNewWord = this.pickNewWord.bind(this);
+    this.toggleFullScreen = this.toggleFullScreen.bind(this);
+
+    this.drawArea = React.createRef();
   }
 
   componentDidMount() {
@@ -36,14 +39,37 @@ class App extends Component {
   
   }
 
+  toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        this.launchIntoFullscreen(this.drawArea.current);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen(); 
+      }
+    }
+  }
+
+ launchIntoFullscreen(element) {
+    if(element.requestFullscreen) {
+      element.requestFullscreen();
+    } else if(element.mozRequestFullScreen) {
+      element.mozRequestFullScreen();
+    } else if(element.webkitRequestFullscreen) {
+      element.webkitRequestFullscreen();
+    } else if(element.msRequestFullscreen) {
+      element.msRequestFullscreen();
+    }
+  }
+
   render() {
     const { selectedWord } = this.state;
     return (
       <div className="App">
         <header className="App-header">
           <h1>BB Draw</h1>
-          <DrawArea></DrawArea>
+          <div ref={this.drawArea}><DrawArea></DrawArea></div>
           <p>{selectedWord ? <span>Draw: <strong>{selectedWord}</strong></span> : <Skeleton></Skeleton>}</p>
+          <button onClick={this.toggleFullScreen}>Toggle Fullscreen</button>
         </header>
       </div>
     );

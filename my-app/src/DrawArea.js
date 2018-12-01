@@ -1,8 +1,9 @@
 import React from 'react';
 import Immutable from 'immutable';
-import Pressure from 'pressure';
 
 import './DrawArea.css';
+
+console.log(React.version);
 
 class DrawArea extends React.Component {
     constructor() {
@@ -32,14 +33,14 @@ class DrawArea extends React.Component {
   
     componentDidMount() {
 
-      Pressure.set(this.drawArea.current, {
-        change: (force, event) => {
-          // console.log(force, event);
-          // this.handleMouseMove(event);
-        },
-        // start: this.handleMouseDown,
-        // end: this.handleMouseUp,
-      });
+      // Pressure.set(this.drawArea.current, {
+      //   change: (force, event) => {
+      //     // console.log(force, event);
+      //     // this.handleMouseMove(event);
+      //   },
+      //   // start: this.handleMouseDown,
+      //   // end: this.handleMouseUp,
+      // });
 
       document.addEventListener("pointerup", this.handleMouseUp);
     }
@@ -51,9 +52,9 @@ class DrawArea extends React.Component {
     handleMouseDown(mouseEvent) {
       console.log('start');
       // mouseEvent.preventDefault();
-      // if (mouseEvent.button != 0) {
-      //   return;
-      // }
+      if (mouseEvent.button != 0) {
+        return;
+      }
   
       const point = this.relativeCoordinatesForEvent(mouseEvent);
   
@@ -108,7 +109,7 @@ class DrawArea extends React.Component {
   
   function Drawing({ lines }) {
     return (
-      <svg className="drawing">
+      <svg className="drawing" focusable="true" tabIndex="0">
         {lines.map((line, index) => (
           <DrawingLine key={index} line={line} />
         ))}

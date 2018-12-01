@@ -7,7 +7,7 @@
     float: left;
     cursor: crosshair;
     background-color: white;
-    touch-action: none;
+    /* touch-action: none; */
   }
   
   .path {
