@@ -11,7 +11,7 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    this.defaultStrokeWidth = 2;
+    this.defaultStrokeWidth = 2.5;
     this.defaultColor = 'black';
 
     this.state = {
@@ -19,12 +19,16 @@ class App extends Component {
       key: 1,
       strokeWidth: this.defaultStrokeWidth,
       color: this.defaultColor,
+      downloadLink: '',
     }
+
+    this.svg = React.createRef();
 
     this.pickNewWord = this.pickNewWord.bind(this);
     this.updateColor = this.updateColor.bind(this);
     this.getUndoMethod = this.getUndoMethod.bind(this);
     this.getResetMethod = this.getResetMethod.bind(this);
+    this.download = this.download.bind(this);
 
     this.drawArea = React.createRef();
   }
@@ -56,6 +60,36 @@ class App extends Component {
     this.undo = method;
   }
 
+  download() {
+    //get svg element.
+    const svg = this.svg.current;
+
+    //get svg source.
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svg);
+
+    //add name spaces.
+    if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+    if (!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+    }
+
+    //add xml declaration
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+    //convert svg source to URI data scheme.
+    const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+    console.log(url);
+    // var file = new Blob([url], { type: 'svg/xml' });
+    // var fileURL = URL.createObjectURL(file);
+    // var win = window.open();
+    // win.document.write('<iframe download="bbdraw.svg" src="' + fileURL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>')
+    //set url value to a element's href attribute.
+    this.setState({ downloadLink: url });
+  }
+
   getResetMethod(resetDrawArea) {
     this.reset = () => {
       resetDrawArea();
@@ -66,33 +100,36 @@ class App extends Component {
   }
 
   render() {
-    const { selectedWord, color, strokeWidth } = this.state;
+    const { selectedWord, color, strokeWidth, downloadLink } = this.state;
     return (
       <div className="App">
         <header className="App-header">
           <h1>BB Draw</h1>
           <div ref={this.drawArea}>
             <DrawArea
+              ref={this.svg}
               color={color}
               strokeWidth={strokeWidth}
               getUndoMethod={this.getUndoMethod}
               getResetMethod={this.getResetMethod}
             />
           </div>
-          <p>{selectedWord ? <span><button onClick={() => this.clear()}>Clear</button> Draw: <strong>{selectedWord}</strong> <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button></span> : <Skeleton></Skeleton>}</p>
-          {/* <button onClick={() => this.updateColor('red')}>Red</button>
-          <button onClick={() => this.updateColor('blue')}>Blue</button>
-          <button onClick={() => this.updateColor('black')}>Black</button>
-          <button onClick={() => this.updateColor('green')}>Green</button>
-          <button onClick={() => this.updateColor('yellow')}>Yellow</button>
-          <button onClick={() => this.updateColor('white')}>White</button> */}
+          <p>
+            {selectedWord ? <span><button onClick={() => this.clear()}>Clear</button> Draw: <strong>{selectedWord}</strong> <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button></span> : <Skeleton></Skeleton>}
+          </p>
           <CompactPicker color={color} onChangeComplete={color => this.updateColor(color.hex)} />
           <div className="slider">
-            <Slider step={5} defaultValue={5} onChange={value => this.setState({ strokeWidth: value })} />
+            <Slider step={this.defaultStrokeWidth} defaultValue={this.defaultStrokeWidth} onChange={value => this.setState({ strokeWidth: value })} />
           </div>
           <p className="App-details">Stroke Width: <strong>{strokeWidth}</strong></p>
           <p>
             <button onClick={() => this.undo()}>Undo</button>
+            {' '}
+            <button onClick={() => this.download()}>Export</button>
+            {' '}
+            {downloadLink !== '' && (
+              <a download="bbdraw.svg" className="save" target="_blank" href={downloadLink}>Save</a>
+            )}
           </p>
         </header>
       </div>

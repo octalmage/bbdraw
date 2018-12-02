@@ -4,8 +4,8 @@ import Immutable from 'immutable';
 import './DrawArea.css';
 
 class DrawArea extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
 
     this.state = {
       lines: new Immutable.List(),
@@ -95,13 +95,14 @@ class DrawArea extends React.Component {
           lines={this.state.lines}
           onPointerDown={this.handleMouseDown}
           onPointerMove={this.handleMouseMove}
+          svgRef={this.props.svgRef}
         />
       </div>
     );
   }
 }
 
-function Drawing({ lines, onPointerDown, onPointerMove }) {
+function Drawing({ lines, onPointerDown, onPointerMove, svgRef }) {
   return (
     <svg
       className="drawing"
@@ -111,6 +112,7 @@ function Drawing({ lines, onPointerDown, onPointerMove }) {
       touch-action="none" // This was needed to trigger PEP for this element.
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
+      ref={svgRef}
     >
       {lines.map((line, index) => (
         <DrawingLine key={index} line={line} />
@@ -131,4 +133,4 @@ function DrawingLine({ line }) {
     fill="none" className="path" d={pathData} />;
 }
 
-export default DrawArea;
+export default React.forwardRef((props, ref) => <DrawArea svgRef={ref} {...props} />);

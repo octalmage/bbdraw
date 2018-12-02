@@ -30,6 +30,10 @@
   font-size: 0.8em;
 }
 
+.save {
+  color: white;
+}
+
 .slider {
   width: 400px;
   margin-left: auto;
