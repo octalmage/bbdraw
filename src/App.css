@@ -36,6 +36,8 @@
   margin-right: auto;
   margin-top: 1em;
   margin-bottom: 1em;
+  padding: 0 1em;
+  box-sizing: border-box;
 }
 
 @keyframes App-logo-spin {
