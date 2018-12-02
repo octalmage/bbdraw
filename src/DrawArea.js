@@ -3,8 +3,6 @@ import Immutable from 'immutable';
 
 import './DrawArea.css';
 
-console.log(React.version);
-
 class DrawArea extends React.Component {
   constructor() {
     super();
@@ -25,11 +23,6 @@ class DrawArea extends React.Component {
 
   componentDidMount() {
     this.drawArea.current.addEventListener("pointerup", this.handleMouseUp);
-
-    // this.drawArea.current.addEventListener('touchstart touchmove touchend',  (e) => {
-    //   e.preventDefault();
-    // });
-
     this.props.getUndoMethod(this.undo);
   }
 
@@ -38,8 +31,6 @@ class DrawArea extends React.Component {
   }
 
   handleMouseDown(mouseEvent) {
-    console.log('start');
-    // mouseEvent.preventDefault();
     if (mouseEvent.button != 0) {
       return;
     }
@@ -59,14 +50,12 @@ class DrawArea extends React.Component {
     }
 
     const point = this.relativeCoordinatesForEvent(mouseEvent);
-    console.log(point.toJS());
-    this.setState(prevState => console.log(prevState.lines.toJS()) || ({
+    this.setState(prevState => ({
       lines: prevState.lines.updateIn([prevState.lines.size - 1], line => line.push(point))
     }));
   }
 
   handleMouseUp() {
-    console.log('end');
     this.setState({ isDrawing: false });
   }
 
@@ -82,9 +71,11 @@ class DrawArea extends React.Component {
   }
 
   undo() {
-    this.setState(prevState => ({
-      lines: prevState.lines.delete(prevState.lines.size),
-    }));
+    this.setState(prevState => {
+      return ({
+        lines: prevState.lines.delete(prevState.lines.size -1),
+      })
+    });
   }
 
   render() {
@@ -93,8 +84,8 @@ class DrawArea extends React.Component {
         className="drawArea"
         ref={this.drawArea}
       >
-        <Drawing 
-          key={2} 
+        <Drawing
+          key={2}
           lines={this.state.lines}
           onPointerDown={this.handleMouseDown}
           onPointerMove={this.handleMouseMove}
@@ -106,15 +97,14 @@ class DrawArea extends React.Component {
 
 function Drawing({ lines, onPointerDown, onPointerMove }) {
   return (
-    <svg 
-      className="drawing" 
-      focusable="false" 
-      tabIndex="0" 
+    <svg
+      className="drawing"
+      focusable="false"
+      tabIndex="0"
       draggable="false"
       touch-action="none" // This was needed to trigger PEP for this element.
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
-      onPointerCancel={(e) => console.log(e)}
     >
       {lines.map((line, index) => (
         <DrawingLine key={index} line={line} />

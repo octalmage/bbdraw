@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import Skeleton from 'react-loading-skeleton';
 import words from './words.txt';
 import DrawArea from "./DrawArea";
-import logo from './logo.svg';
+import { CompactPicker } from 'react-color';
 import './App.css';
 
 class App extends Component {
@@ -10,7 +10,7 @@ class App extends Component {
     super(props);
 
     this.defaultStrokeWidth = 2;
-    this.defaultColor = "blue";
+    this.defaultColor = 'black';
 
     this.state = {
       words: [],
@@ -20,7 +20,6 @@ class App extends Component {
     }
 
     this.pickNewWord = this.pickNewWord.bind(this);
-    this.toggleFullScreen = this.toggleFullScreen.bind(this);
     this.updateColor = this.updateColor.bind(this);
     this.getUndoMethod = this.getUndoMethod.bind(this);
 
@@ -31,9 +30,9 @@ class App extends Component {
     fetch(words).then(data => data.text())
       .then(text => {
         this.setState(
-          { 
-            words: text.split("\n") 
-          }, 
+          {
+            words: text.split("\n")
+          },
           () => this.pickNewWord(),
         )
       });
@@ -43,29 +42,7 @@ class App extends Component {
     this.setState(({ words }) => ({
       selectedWord: words[Math.floor(Math.random() * words.length)],
     }));
-  
-  }
 
-  toggleFullScreen() {
-    if (!document.fullscreenElement) {
-        this.launchIntoFullscreen(this.drawArea.current);
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen(); 
-      }
-    }
-  }
-
- launchIntoFullscreen(element) {
-    if(element.requestFullscreen) {
-      element.requestFullscreen();
-    } else if(element.mozRequestFullScreen) {
-      element.mozRequestFullScreen();
-    } else if(element.webkitRequestFullscreen) {
-      element.webkitRequestFullscreen();
-    } else if(element.msRequestFullscreen) {
-      element.msRequestFullscreen();
-    }
   }
 
   updateColor(color) {
@@ -90,12 +67,31 @@ class App extends Component {
             />
           </div>
           <p>{selectedWord ? <span>Draw: <strong>{selectedWord}</strong></span> : <Skeleton></Skeleton>}</p>
-          <button onClick={() => this.updateColor('red')}>Red</button>
+          {/* <button onClick={() => this.updateColor('red')}>Red</button>
           <button onClick={() => this.updateColor('blue')}>Blue</button>
           <button onClick={() => this.updateColor('black')}>Black</button>
-          <button onClick={() => this.undo()}>Undo</button>
-          <hr />
-          <button onClick={this.toggleFullScreen}>Toggle Fullscreen</button>
+          <button onClick={() => this.updateColor('green')}>Green</button>
+          <button onClick={() => this.updateColor('yellow')}>Yellow</button>
+          <button onClick={() => this.updateColor('white')}>White</button> */}
+          <CompactPicker color={color} onChangeComplete={color => this.updateColor(color.hex)} />
+          <p>
+            <button
+              onClick={
+                () => this.setState(prevProps => ({ strokeWidth: prevProps.strokeWidth - 1 }))
+              }
+            >
+              Minus
+          </button>
+          <button
+              onClick={
+                () => this.setState(prevProps => ({ strokeWidth: prevProps.strokeWidth + 1 }))
+              }
+            >
+              Plus
+          </button>
+          </p>
+          <p className="App-details">Stroke Width: <strong>{strokeWidth}</strong></p>
+          <p><button onClick={() => this.undo()}>Undo</button></p>
         </header>
       </div>
     );

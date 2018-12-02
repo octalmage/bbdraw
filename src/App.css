@@ -18,8 +18,16 @@
   color: white;
 }
 
+.App-header > h1 {
+  margin: 0;
+}
+
 .App-link {
   color: #61dafb;
+}
+
+.App-details {
+  font-size: 0.8em;
 }
 
 @keyframes App-logo-spin {
