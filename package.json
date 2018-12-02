@@ -5,6 +5,7 @@
   "dependencies": {
     "immutable": "^4.0.0-rc.12",
     "pressure": "^2.1.2",
+    "rc-slider": "^8.6.3",
     "react": "^16.6.3",
     "react-canvas-draw": "^1.0.0-alpha.7",
     "react-color": "^2.14.1",

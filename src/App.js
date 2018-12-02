@@ -3,6 +3,8 @@ import Skeleton from 'react-loading-skeleton';
 import words from './words.txt';
 import DrawArea from "./DrawArea";
 import { CompactPicker } from 'react-color';
+import Slider from 'rc-slider';
+import 'rc-slider/assets/index.css';
 import './App.css';
 
 class App extends Component {
@@ -83,22 +85,9 @@ class App extends Component {
           <button onClick={() => this.updateColor('yellow')}>Yellow</button>
           <button onClick={() => this.updateColor('white')}>White</button> */}
           <CompactPicker color={color} onChangeComplete={color => this.updateColor(color.hex)} />
-          <p>
-            <button
-              onClick={
-                () => this.setState(prevProps => ({ strokeWidth: prevProps.strokeWidth - 1 }))
-              }
-            >
-              Minus
-          </button>
-          <button
-              onClick={
-                () => this.setState(prevProps => ({ strokeWidth: prevProps.strokeWidth + 1 }))
-              }
-            >
-              Plus
-          </button>
-          </p>
+          <div className="slider">
+            <Slider step={5} defaultValue={5} onChange={value => this.setState({ strokeWidth: value })} />
+          </div>
           <p className="App-details">Stroke Width: <strong>{strokeWidth}</strong></p>
           <p>
             <button onClick={() => this.undo()}>Undo</button>
