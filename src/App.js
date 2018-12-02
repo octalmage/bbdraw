@@ -22,6 +22,7 @@ class App extends Component {
     this.pickNewWord = this.pickNewWord.bind(this);
     this.updateColor = this.updateColor.bind(this);
     this.getUndoMethod = this.getUndoMethod.bind(this);
+    this.getResetMethod = this.getResetMethod.bind(this);
 
     this.drawArea = React.createRef();
   }
@@ -53,6 +54,13 @@ class App extends Component {
     this.undo = method;
   }
 
+  getResetMethod(resetDrawArea) {
+    this.reset = () => {
+      resetDrawArea();
+      this.pickNewWord();
+    };
+  }
+
   render() {
     const { selectedWord, color, strokeWidth } = this.state;
     return (
@@ -64,9 +72,10 @@ class App extends Component {
               color={color}
               strokeWidth={strokeWidth}
               getUndoMethod={this.getUndoMethod}
+              getResetMethod={this.getResetMethod}
             />
           </div>
-          <p>{selectedWord ? <span>Draw: <strong>{selectedWord}</strong></span> : <Skeleton></Skeleton>}</p>
+          <p>{selectedWord ? <span>Draw: <strong>{selectedWord}</strong> <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button></span> : <Skeleton></Skeleton>}</p>
           {/* <button onClick={() => this.updateColor('red')}>Red</button>
           <button onClick={() => this.updateColor('blue')}>Blue</button>
           <button onClick={() => this.updateColor('black')}>Black</button>
@@ -91,7 +100,9 @@ class App extends Component {
           </button>
           </p>
           <p className="App-details">Stroke Width: <strong>{strokeWidth}</strong></p>
-          <p><button onClick={() => this.undo()}>Undo</button></p>
+          <p>
+            <button onClick={() => this.undo()}>Undo</button>
+          </p>
         </header>
       </div>
     );

@@ -19,11 +19,13 @@ class DrawArea extends React.Component {
     this.handleMouseUp = this.handleMouseUp.bind(this);
     this.componentDidMount = this.componentDidMount.bind(this);
     this.undo = this.undo.bind(this);
+    this.reset = this.reset.bind(this);
   }
 
   componentDidMount() {
     this.drawArea.current.addEventListener("pointerup", this.handleMouseUp);
     this.props.getUndoMethod(this.undo);
+    this.props.getResetMethod(this.reset);
   }
 
   componentWillUnmount() {
@@ -76,6 +78,10 @@ class DrawArea extends React.Component {
         lines: prevState.lines.delete(prevState.lines.size -1),
       })
     });
+  }
+  
+  reset() {
+    this.setState({ lines: new Immutable.List() })
   }
 
   render() {
