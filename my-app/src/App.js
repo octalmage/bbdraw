@@ -9,13 +9,20 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    this.defaultStrokeWidth = 2;
+    this.defaultColor = "blue";
+
     this.state = {
       words: [],
       key: 1,
+      strokeWidth: this.defaultStrokeWidth,
+      color: this.defaultColor,
     }
 
     this.pickNewWord = this.pickNewWord.bind(this);
     this.toggleFullScreen = this.toggleFullScreen.bind(this);
+    this.updateColor = this.updateColor.bind(this);
+    this.getUndoMethod = this.getUndoMethod.bind(this);
 
     this.drawArea = React.createRef();
   }
@@ -61,14 +68,33 @@ class App extends Component {
     }
   }
 
+  updateColor(color) {
+    this.setState({ color });
+  }
+
+  getUndoMethod(method) {
+    this.undo = method;
+  }
+
   render() {
-    const { selectedWord } = this.state;
+    const { selectedWord, color, strokeWidth } = this.state;
     return (
       <div className="App">
         <header className="App-header">
           <h1>BB Draw</h1>
-          <div ref={this.drawArea}><DrawArea></DrawArea></div>
+          <div ref={this.drawArea}>
+            <DrawArea
+              color={color}
+              strokeWidth={strokeWidth}
+              getUndoMethod={this.getUndoMethod}
+            />
+          </div>
           <p>{selectedWord ? <span>Draw: <strong>{selectedWord}</strong></span> : <Skeleton></Skeleton>}</p>
+          <button onClick={() => this.updateColor('red')}>Red</button>
+          <button onClick={() => this.updateColor('blue')}>Blue</button>
+          <button onClick={() => this.updateColor('black')}>Black</button>
+          <button onClick={() => this.undo()}>Undo</button>
+          <hr />
           <button onClick={this.toggleFullScreen}>Toggle Fullscreen</button>
         </header>
       </div>

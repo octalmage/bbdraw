@@ -10,6 +10,10 @@ window.oncontextmenu = function(event) {
     return false;
 };
 
+// document.addEventListener('touchend', (e) => {
+//     e.preventDefault();
+// });
+
 // document.addEventListener("pointermove", function(event) {
 
 //     if (event.target.tagName != "svg") { // Element that you don't want to be prevented default event.
