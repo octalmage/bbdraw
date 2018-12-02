@@ -61,6 +61,8 @@ class App extends Component {
       resetDrawArea();
       this.pickNewWord();
     };
+
+    this.clear = () => resetDrawArea();
   }
 
   render() {
@@ -77,7 +79,7 @@ class App extends Component {
               getResetMethod={this.getResetMethod}
             />
           </div>
-          <p>{selectedWord ? <span>Draw: <strong>{selectedWord}</strong> <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button></span> : <Skeleton></Skeleton>}</p>
+          <p>{selectedWord ? <span><button onClick={() => this.clear()}>Clear</button> Draw: <strong>{selectedWord}</strong> <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button></span> : <Skeleton></Skeleton>}</p>
           {/* <button onClick={() => this.updateColor('red')}>Red</button>
           <button onClick={() => this.updateColor('blue')}>Blue</button>
           <button onClick={() => this.updateColor('black')}>Black</button>
