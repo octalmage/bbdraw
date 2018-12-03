@@ -1,26 +1,38 @@
-import React from 'react';
+// @flow
+import * as React from 'react';
 import Immutable from 'immutable';
+
+import type { List, Map } from 'immutable';
 
 import './DrawArea.css';
 
-class DrawArea extends React.Component {
-  constructor(props) {
-    super(props);
+type Props = {
+  strokeWidth: number,
+  color: string,
+  getUndoMethod: (() => void) => void, 
+  getResetMethod: (() => void) => void,
+  svgRef: any,
+};
 
-    this.state = {
-      lines: new Immutable.List(),
-      isDrawing: false,
-    };
+type State = {
+  lines: List<List<Map<string, number | string>>>,
+  isDrawing: boolean,
+};
 
-    this.drawArea = React.createRef();
+class DrawArea extends React.Component<Props, State> {
+  state = {
+    lines: new Immutable.List(),
+    isDrawing: false,
+  };
 
-    this.handleMouseDown = this.handleMouseDown.bind(this);
-    this.handleMouseMove = this.handleMouseMove.bind(this);
-    this.handleMouseUp = this.handleMouseUp.bind(this);
-    this.componentDidMount = this.componentDidMount.bind(this);
-    this.undo = this.undo.bind(this);
-    this.reset = this.reset.bind(this);
-  }
+  drawArea: { current: any } = React.createRef();
+
+  handleMouseMove = this.handleMouseMove.bind(this);
+  handleMouseUp = this.handleMouseUp.bind(this);
+  handleMouseDown = this.handleMouseDown.bind(this);
+
+  undo: Function 
+  reset: Function
 
   componentDidMount() {
     this.drawArea.current.addEventListener("pointerup", this.handleMouseUp);
@@ -40,7 +52,7 @@ class DrawArea extends React.Component {
     const point = this.relativeCoordinatesForEvent(mouseEvent);
 
     this.setState(prevState => ({
-      lines: prevState.lines.push(new Immutable.List([point])),
+      lines: prevState.lines.push(Immutable.List([point])),
       isDrawing: true
     }));
   }
@@ -61,10 +73,10 @@ class DrawArea extends React.Component {
     this.setState({ isDrawing: false });
   }
 
-  relativeCoordinatesForEvent(mouseEvent) {
+  relativeCoordinatesForEvent(mouseEvent: any) {
     const { strokeWidth, color } = this.props;
     const boundingRect = this.drawArea.current.getBoundingClientRect();
-    return new Immutable.Map({
+    return Immutable.Map({
       x: mouseEvent.clientX - boundingRect.left,
       y: mouseEvent.clientY - boundingRect.top,
       strokeWidth,
@@ -125,12 +137,15 @@ function DrawingLine({ line }) {
   const pathData = "M " +
     line
       .map(p => {
+        // $FlowFixMe
         return `${p.get('x')} ${p.get('y')}`;
       })
       .join(" L ");
 
+  // $FlowFixMe
   return <path stroke="black" stroke={line.get(0).get('color')} strokeWidth={line.get(0).get('strokeWidth')}
     fill="none" className="path" d={pathData} />;
 }
 
+// $FlowFixMe
 export default React.forwardRef((props, ref) => <DrawArea svgRef={ref} {...props} />);

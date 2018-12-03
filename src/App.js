@@ -1,11 +1,32 @@
 import React, { Component } from 'react';
 import Skeleton from 'react-loading-skeleton';
-import words from './words.txt';
-import DrawArea from "./DrawArea";
-import { CompactPicker } from 'react-color';
+import { CirclePicker } from 'react-color';
 import Slider from 'rc-slider';
+import words from './words.txt';
+import DrawArea from './DrawArea';
 import 'rc-slider/assets/index.css';
 import './App.css';
+
+const colors = [
+  '#ffffff',
+  '#f44336',
+  '#9c27b0',
+  '#673ab7',
+  '#3f51b5',
+  '#2196f3',
+  '#03a9f4',
+  '#00bcd4',
+  '#009688',
+  '#4caf50',
+  '#8bc34a',
+  '#cddc39',
+  '#ffeb3b',
+  '#ffc107',
+  '#ff9800',
+  '#ff5722',
+  '#795548',
+  '#000000',
+];
 
 class App extends Component {
   constructor(props) {
@@ -20,7 +41,7 @@ class App extends Component {
       strokeWidth: this.defaultStrokeWidth,
       color: this.defaultColor,
       downloadLink: '',
-    }
+    };
 
     this.svg = React.createRef();
 
@@ -35,13 +56,13 @@ class App extends Component {
 
   componentDidMount() {
     fetch(words).then(data => data.text())
-      .then(text => {
+      .then((text) => {
         this.setState(
           {
-            words: text.split("\n")
+            words: text.split('\n'),
           },
           () => this.pickNewWord(),
-        )
+        );
       });
   }
 
@@ -49,7 +70,6 @@ class App extends Component {
     this.setState(({ words }) => ({
       selectedWord: words[Math.floor(Math.random() * words.length)],
     }));
-
   }
 
   updateColor(color) {
@@ -61,14 +81,14 @@ class App extends Component {
   }
 
   download() {
-    //get svg element.
+    // get svg element.
     const svg = this.svg.current;
 
-    //get svg source.
+    // get svg source.
     const serializer = new XMLSerializer();
     let source = serializer.serializeToString(svg);
 
-    //add name spaces.
+    // add name spaces.
     if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
       source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
     }
@@ -76,17 +96,17 @@ class App extends Component {
       source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
     }
 
-    //add xml declaration
-    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+    // add xml declaration
+    source = `<?xml version="1.0" standalone="no"?>\r\n${source}`;
 
-    //convert svg source to URI data scheme.
-    const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(source);
+    // convert svg source to URI data scheme.
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
     console.log(url);
     // var file = new Blob([url], { type: 'svg/xml' });
     // var fileURL = URL.createObjectURL(file);
     // var win = window.open();
     // win.document.write('<iframe download="bbdraw.svg" src="' + fileURL + '" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>')
-    //set url value to a element's href attribute.
+    // set url value to a element's href attribute.
     this.setState({ downloadLink: url });
   }
 
@@ -100,7 +120,9 @@ class App extends Component {
   }
 
   render() {
-    const { selectedWord, color, strokeWidth, downloadLink } = this.state;
+    const {
+      selectedWord, color, strokeWidth, downloadLink,
+    } = this.state;
     return (
       <div className="App">
         <header className="App-header">
@@ -115,13 +137,33 @@ class App extends Component {
             />
           </div>
           <p>
-            {selectedWord ? <span><button onClick={() => this.clear()}>Clear</button> Draw: <strong>{selectedWord}</strong> <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button></span> : <Skeleton></Skeleton>}
+            {selectedWord ? (
+              <span>
+                <button onClick={() => this.clear()}>Clear</button>
+                {' '}
+Draw:
+                {' '}
+                <strong>{selectedWord}</strong>
+                {' '}
+                <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button>
+              </span>
+            ) : <Skeleton />}
           </p>
-          <CompactPicker color={color} onChangeComplete={color => this.updateColor(color.hex)} />
+          <div>
+            <CirclePicker
+              colors={colors}
+              className="circle"
+              color={color}
+              onChangeComplete={color => this.updateColor(color.hex)}
+            />
+          </div>
           <div className="slider">
             <Slider step={this.defaultStrokeWidth} defaultValue={this.defaultStrokeWidth} onChange={value => this.setState({ strokeWidth: value })} />
           </div>
-          <p className="App-details">Stroke Width: <strong>{strokeWidth}</strong></p>
+          <p className="App-details">
+Stroke Width:
+            <strong>{strokeWidth}</strong>
+          </p>
           <p>
             <button onClick={() => this.undo()}>Undo</button>
             {' '}
