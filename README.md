@@ -1,3 +1,9 @@
+## BB Draw
+
+<p align="center">
+  <img width="50%" src="iphone.png" />
+</p>
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
