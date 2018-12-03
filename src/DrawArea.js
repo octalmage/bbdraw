@@ -34,6 +34,9 @@ class DrawArea extends React.Component<Props, State> {
   undo: Function 
   reset: Function
 
+  undo = this.undo.bind(this);
+  reset = this.reset.bind(this);
+
   componentDidMount() {
     this.drawArea.current.addEventListener("pointerup", this.handleMouseUp);
     this.props.getUndoMethod(this.undo);
