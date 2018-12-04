@@ -9,12 +9,12 @@ import './App.css';
 
 const colors = [
   '#ffffff',
+  '#555555',
   '#f44336',
-  '#9c27b0',
+  '#FF44ff',
   '#673ab7',
   '#3f51b5',
   '#2196f3',
-  '#03a9f4',
   '#00bcd4',
   '#009688',
   '#4caf50',
@@ -36,11 +36,12 @@ class App extends Component {
     this.defaultColor = 'black';
 
     this.state = {
-      words: [],
-      key: 1,
+      words: [], // eslint-disable-line
+      // key: 1,
       strokeWidth: this.defaultStrokeWidth,
       color: this.defaultColor,
       downloadLink: '',
+      wordShowing: true,
     };
 
     this.svg = React.createRef();
@@ -59,25 +60,24 @@ class App extends Component {
       .then((text) => {
         this.setState(
           {
-            words: text.split('\n'),
+            words: text.split('\n'), // eslint-disable-line
           },
           () => this.pickNewWord(),
         );
       });
   }
 
-  pickNewWord() {
-    this.setState(({ words }) => ({
-      selectedWord: words[Math.floor(Math.random() * words.length)],
-    }));
-  }
-
-  updateColor(color) {
-    this.setState({ color });
-  }
-
   getUndoMethod(method) {
     this.undo = method;
+  }
+
+  getResetMethod(resetDrawArea) {
+    this.reset = () => {
+      resetDrawArea();
+      this.pickNewWord();
+    };
+
+    this.clear = () => resetDrawArea();
   }
 
   download() {
@@ -101,7 +101,7 @@ class App extends Component {
 
     // convert svg source to URI data scheme.
     const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
-    console.log(url);
+
     // var file = new Blob([url], { type: 'svg/xml' });
     // var fileURL = URL.createObjectURL(file);
     // var win = window.open();
@@ -110,18 +110,23 @@ class App extends Component {
     this.setState({ downloadLink: url });
   }
 
-  getResetMethod(resetDrawArea) {
-    this.reset = () => {
-      resetDrawArea();
-      this.pickNewWord();
-    };
+  updateColor(color) {
+    this.setState({ color });
+  }
 
-    this.clear = () => resetDrawArea();
+  pickNewWord() {
+    this.setState(({ words: wordList }) => ({
+      selectedWord: wordList[Math.floor(Math.random() * wordList.length)],
+    }));
   }
 
   render() {
     const {
-      selectedWord, color, strokeWidth, downloadLink,
+      selectedWord, 
+      color, 
+      strokeWidth, 
+      downloadLink,
+      wordShowing,
     } = this.state;
     return (
       <div className="App">
@@ -139,11 +144,11 @@ class App extends Component {
           <p>
             {selectedWord ? (
               <span>
-                <button onClick={() => this.clear()}>Clear</button>
+                <button type="button" onClick={() => this.clear()}>Clear</button>
                 {' '}
-Draw:
+                Draw:
                 {' '}
-                <strong>{selectedWord}</strong>
+                <strong onClick={() => this.setState((state) => ({ wordShowing: !state.wordShowing }))}>{wordShowing ? selectedWord : 'HIDDEN'}</strong>
                 {' '}
                 <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button>
               </span>
@@ -154,7 +159,7 @@ Draw:
               colors={colors}
               className="circle"
               color={color}
-              onChangeComplete={color => this.updateColor(color.hex)}
+              onChangeComplete={newColor => this.updateColor(newColor.hex)}
             />
           </div>
           <div className="slider">
@@ -165,12 +170,12 @@ Stroke Width:
             <strong>{strokeWidth}</strong>
           </p>
           <p>
-            <button onClick={() => this.undo()}>Undo</button>
+            <button type="button" onClick={() => this.undo()}>Undo</button>
             {' '}
-            <button onClick={() => this.download()}>Export</button>
+            <button type="button" onClick={() => this.download()}>Export</button>
             {' '}
             {downloadLink !== '' && (
-              <a download="bbdraw.svg" className="save" target="_blank" href={downloadLink}>Save</a>
+              <a download="bbdraw.svg" rel="noopener noreferrer" className="save" target="_blank" href={downloadLink}>Save</a>
             )}
           </p>
         </header>
