@@ -1,31 +1,31 @@
-import React, { Component } from 'react';
-import Skeleton from 'react-loading-skeleton';
-import { CirclePicker } from 'react-color';
-import Slider from 'rc-slider';
-import words from './words.txt';
-import DrawArea from './DrawArea';
-import 'rc-slider/assets/index.css';
-import './App.css';
+import React, { Component } from "react";
+import Skeleton from "react-loading-skeleton";
+import { CirclePicker } from "react-color";
+import Slider from "rc-slider";
+import words from "./words.txt";
+import DrawArea from "./DrawArea";
+import "rc-slider/assets/index.css";
+import "./App.css";
 
 const colors = [
-  '#ffffff',
-  '#555555',
-  '#f44336',
-  '#FF44ff',
-  '#673ab7',
-  '#3f51b5',
-  '#2196f3',
-  '#00bcd4',
-  '#009688',
-  '#4caf50',
-  '#8bc34a',
-  '#cddc39',
-  '#ffeb3b',
-  '#ffc107',
-  '#ff9800',
-  '#ff5722',
-  '#795548',
-  '#000000',
+  "#ffffff",
+  "#555555",
+  "#f44336",
+  "#FF44ff",
+  "#673ab7",
+  "#3f51b5",
+  "#2196f3",
+  "#00bcd4",
+  "#009688",
+  "#4caf50",
+  "#8bc34a",
+  "#cddc39",
+  "#ffeb3b",
+  "#ffc107",
+  "#ff9800",
+  "#ff5722",
+  "#795548",
+  "#000000"
 ];
 
 class App extends Component {
@@ -33,7 +33,7 @@ class App extends Component {
     super(props);
 
     this.defaultStrokeWidth = 2.5;
-    this.defaultColor = 'black';
+    this.defaultColor = "black";
 
     this.state = {
       words: [], // eslint-disable-line
@@ -42,6 +42,7 @@ class App extends Component {
       color: this.defaultColor,
       downloadLink: '',
       wordShowing: true,
+      selectedWord: '',
     };
 
     this.svg = React.createRef();
@@ -51,20 +52,34 @@ class App extends Component {
     this.getUndoMethod = this.getUndoMethod.bind(this);
     this.getResetMethod = this.getResetMethod.bind(this);
     this.download = this.download.bind(this);
+    this.componentDidMount = this.componentDidMount.bind(this);
 
     this.drawArea = React.createRef();
   }
 
   componentDidMount() {
-    fetch(words).then(data => data.text())
-      .then((text) => {
-        this.setState(
-          {
-            words: text.split('\n'), // eslint-disable-line
-          },
-          () => this.pickNewWord(),
-        );
-      });
+    this.hydrateStateWithLocalStorage().then(() => {
+      const { selectedWord } = this.state;
+      fetch(words)
+        .then(data => data.text())
+        .then((text) => {
+          this.setState(
+            {
+              words: text.split("\n") // eslint-disable-line
+            },
+            () => {
+              if (selectedWord !== '') {
+                return;
+              }
+              this.pickNewWord();
+            }
+          );
+        });
+    });
+  }
+
+  componentDidUpdate() {
+    this.storeStateInLocalStorage();
   }
 
   getUndoMethod(method) {
@@ -90,17 +105,25 @@ class App extends Component {
 
     // add name spaces.
     if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
-      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      source = source.replace(
+        /^<svg/,
+        '<svg xmlns="http://www.w3.org/2000/svg"'
+      );
     }
     if (!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)) {
-      source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+      source = source.replace(
+        /^<svg/,
+        '<svg xmlns:xlink="http://www.w3.org/1999/xlink"'
+      );
     }
 
     // add xml declaration
     source = `<?xml version="1.0" standalone="no"?>\r\n${source}`;
 
     // convert svg source to URI data scheme.
-    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(source)}`;
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
+      source
+    )}`;
 
     // var file = new Blob([url], { type: 'svg/xml' });
     // var fileURL = URL.createObjectURL(file);
@@ -116,17 +139,54 @@ class App extends Component {
 
   pickNewWord() {
     this.setState(({ words: wordList }) => ({
-      selectedWord: wordList[Math.floor(Math.random() * wordList.length)],
+      selectedWord: wordList[Math.floor(Math.random() * wordList.length)]
     }));
+  }
+
+  storeStateInLocalStorage() {
+    // for all items in state
+    Object.keys(this.state).forEach(key => {
+      localStorage.setItem(key, JSON.stringify(this.state[key])); // eslint-disable-line
+    });
+  }
+
+  decodeAndStore(key, value) {
+    return new Promise(resolve => {
+      try {
+        const parsedValue = JSON.parse(value);
+        this.setState({ [key]: parsedValue }, resolve);
+      } catch (e) {
+        // handle empty string
+        this.setState({ [key]: value }, resolve);
+      }
+    });
+  }
+
+  hydrateStateWithLocalStorage(done) {
+    // for all items in state
+    const tasks = Object.keys(this.state).map(key => {
+      // if the key exists in localStorage
+      if (typeof localStorage[key] !== "undefined") {
+        // get the key's value from localStorage
+        const value = localStorage.getItem(key);
+        if (typeof value === "string") {
+          // parse the localStorage string and setState
+          return this.decodeAndStore(key, value);
+        }
+      }
+      return undefined;
+    });
+
+    return Promise.all(tasks).then(done);
   }
 
   render() {
     const {
-      selectedWord, 
-      color, 
-      strokeWidth, 
+      selectedWord,
+      color,
+      strokeWidth,
       downloadLink,
-      wordShowing,
+      wordShowing
     } = this.state;
     return (
       <div className="App">
@@ -144,15 +204,26 @@ class App extends Component {
           <p>
             {selectedWord ? (
               <span>
-                <button type="button" onClick={() => this.clear()}>Clear</button>
-                {' '}
-                Draw:
-                {' '}
-                <strong onClick={() => this.setState((state) => ({ wordShowing: !state.wordShowing }))}>{wordShowing ? selectedWord : 'HIDDEN'}</strong>
-                {' '}
-                <button onClick={() => this.reset()}><strong>&#x21bb;</strong></button>
+                <button type="button" onClick={() => this.clear()}>
+                  Clear
+                </button>{" "}
+                Draw:{" "}
+                <strong
+                  onClick={() =>
+                    this.setState(state => ({
+                      wordShowing: !state.wordShowing
+                    }))
+                  }
+                >
+                  {wordShowing ? selectedWord : "HIDDEN"}
+                </strong>{" "}
+                <button onClick={() => this.reset()}>
+                  <strong>&#x21bb;</strong>
+                </button>
               </span>
-            ) : <Skeleton />}
+            ) : (
+              <Skeleton />
+            )}
           </p>
           <div>
             <CirclePicker
@@ -163,19 +234,34 @@ class App extends Component {
             />
           </div>
           <div className="slider">
-            <Slider step={this.defaultStrokeWidth} defaultValue={this.defaultStrokeWidth} onChange={value => this.setState({ strokeWidth: value })} />
+            <Slider
+              step={this.defaultStrokeWidth}
+              defaultValue={this.defaultStrokeWidth}
+              value={strokeWidth}
+              onChange={value => this.setState({ strokeWidth: value })}
+            />
           </div>
           <p className="App-details">
-Stroke Width:
+            Stroke Width:
             <strong>{strokeWidth}</strong>
           </p>
           <p>
-            <button type="button" onClick={() => this.undo()}>Undo</button>
-            {' '}
-            <button type="button" onClick={() => this.download()}>Export</button>
-            {' '}
-            {downloadLink !== '' && (
-              <a download="bbdraw.svg" rel="noopener noreferrer" className="save" target="_blank" href={downloadLink}>Save</a>
+            <button type="button" onClick={() => this.undo()}>
+              Undo
+            </button>{" "}
+            <button type="button" onClick={() => this.download()}>
+              Export
+            </button>{" "}
+            {downloadLink !== "" && (
+              <a
+                download="bbdraw.svg"
+                rel="noopener noreferrer"
+                className="save"
+                target="_blank"
+                href={downloadLink}
+              >
+                Save
+              </a>
             )}
           </p>
         </header>

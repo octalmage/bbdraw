@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react';
-import Immutable from 'immutable';
+import Immutable, { fromJS, isKeyed } from 'immutable';
 
 import type { List, Map } from 'immutable';
 
@@ -9,13 +9,16 @@ import './DrawArea.css';
 type Props = {
   strokeWidth: number,
   color: string,
-  getUndoMethod: (() => void) => void, 
+  getUndoMethod: (() => void) => void,
   getResetMethod: (() => void) => void,
   svgRef: any,
 };
 
+type Line = List<Map<string, number | string>>;
+type Lines = List<Line>;
+
 type State = {
-  lines: List<List<Map<string, number | string>>>,
+  lines: Lines,
   isDrawing: boolean,
 };
 
@@ -28,23 +31,70 @@ class DrawArea extends React.Component<Props, State> {
   drawArea: { current: any } = React.createRef();
 
   handleMouseMove = this.handleMouseMove.bind(this);
+
   handleMouseUp = this.handleMouseUp.bind(this);
+
   handleMouseDown = this.handleMouseDown.bind(this);
 
-  undo: Function 
+  hydrateStateWithLocalStorage = this.hydrateStateWithLocalStorage.bind(this);
+
+  componentDidUpdate = this.componentDidUpdate.bind(this);
+
+  storeStateInLocalStorage = this.storeStateInLocalStorage.bind(this);
+
+  undo: Function // eslint-disable-line
+
   reset: Function
 
   undo = this.undo.bind(this);
+
   reset = this.reset.bind(this);
 
   componentDidMount() {
-    this.drawArea.current.addEventListener("pointerup", this.handleMouseUp);
-    this.props.getUndoMethod(this.undo);
-    this.props.getResetMethod(this.reset);
+    const { getUndoMethod, getResetMethod } = this.props;
+    this.drawArea.current.addEventListener('pointerup', this.handleMouseUp);
+    getUndoMethod(this.undo);
+    getResetMethod(this.reset);
+
+    this.hydrateStateWithLocalStorage();
+  }
+
+  componentDidUpdate() {
+    this.storeStateInLocalStorage();
+  }
+
+  storeStateInLocalStorage() {
+    // for all items in state
+    Object.keys(this.state).forEach((key) => {
+      localStorage.setItem(key, JSON.stringify(this.state[key])); // eslint-disable-line
+    });
+  }
+
+  hydrateStateWithLocalStorage() {
+    // for all items in state
+    for (let key in this.state) { // eslint-disable-line
+      // if the key exists in localStorage
+      if (localStorage.hasOwnProperty(key)) {
+        // get the key's value from localStorage
+        let value = localStorage.getItem(key);
+        if (typeof value === 'string') {
+          // console.log(key, value);
+          // parse the localStorage string and setState
+          try {
+            value = JSON.parse(value);
+            const l = fromJS(value);
+            this.setState({ [key]: l });
+          } catch (e) {
+            // handle empty string
+            // this.setState({ [key]: value });
+          }
+        }
+      }
+    }
   }
 
   componentWillUnmount() {
-    document.removeEventListener("pointerup", this.handleMouseUp);
+    document.removeEventListener('pointerup', this.handleMouseUp);
   }
 
   handleMouseDown(mouseEvent) {
@@ -56,19 +106,19 @@ class DrawArea extends React.Component<Props, State> {
 
     this.setState(prevState => ({
       lines: prevState.lines.push(Immutable.List([point])),
-      isDrawing: true
+      isDrawing: true,
     }));
   }
 
   handleMouseMove(mouseEvent) {
-
-    if (!this.state.isDrawing) {
+    const { isDrawing } = this.state;
+    if (!isDrawing) {
       return;
     }
 
     const point = this.relativeCoordinatesForEvent(mouseEvent);
     this.setState(prevState => ({
-      lines: prevState.lines.updateIn([prevState.lines.size - 1], line => line.push(point))
+      lines: prevState.lines.updateIn([prevState.lines.size - 1], line => line.push(point)),
     }));
   }
 
@@ -88,15 +138,13 @@ class DrawArea extends React.Component<Props, State> {
   }
 
   undo() {
-    this.setState(prevState => {
-      return ({
-        lines: prevState.lines.delete(prevState.lines.size -1),
-      })
-    });
+    this.setState(prevState => ({
+      lines: prevState.lines.delete(prevState.lines.size - 1),
+    }));
   }
-  
+
   reset() {
-    this.setState({ lines: new Immutable.List() })
+    this.setState({ lines: new Immutable.List() });
   }
 
   render() {
@@ -117,7 +165,18 @@ class DrawArea extends React.Component<Props, State> {
   }
 }
 
-function Drawing({ lines, onPointerDown, onPointerMove, svgRef }) {
+type DrawingProps = {
+  lines: Lines,
+  onPointerDown: Function,
+  onPointerMove: Function,
+  svgRef: any,
+}
+function Drawing({
+  lines,
+  onPointerDown,
+  onPointerMove,
+  svgRef,
+}: DrawingProps) {
   return (
     <svg
       className="drawing"
@@ -136,18 +195,24 @@ function Drawing({ lines, onPointerDown, onPointerMove, svgRef }) {
   );
 }
 
-function DrawingLine({ line }) {
-  const pathData = "M " +
-    line
-      .map(p => {
+type DrawingLineProps = {
+  line: Line,
+};
+
+function DrawingLine({ line }: DrawingLineProps) {
+  const pathData = 'M '
+    + line
+      .map((p) =>
         // $FlowFixMe
-        return `${p.get('x')} ${p.get('y')}`;
-      })
-      .join(" L ");
+         `${p.get('x')} ${p.get('y')}`
+      )
+      .join(' L ');
 
   // $FlowFixMe
-  return <path stroke="black" stroke={line.get(0).get('color')} strokeWidth={line.get(0).get('strokeWidth')}
-    fill="none" className="path" d={pathData} />;
+  return (
+<path stroke="black" stroke={line.get(0).get('color')} strokeWidth={line.get(0).get('strokeWidth')}
+    fill="none" className="path" d={pathData} />
+);
 }
 
 // $FlowFixMe
